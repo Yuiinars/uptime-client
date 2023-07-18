@@ -10,6 +10,22 @@ mkdir /opt/uptime-client/ && cd /opt/uptime-client/
 git clone https://github.com/Yuiinars/uptime-client .
 go build -o ./bin/main .
 ```
+- ☁️ Cross platform
+```bash
+# Linux x64
+## to 🐧Linux arm64
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o bin/main-linux-arm64 main.go
+## to 🪟Windows x64
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/main-windows-amd64.exe main.go
+## to 🪟Windows arm64
+CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -o bin/main-windows-arm64.exe main.go
+## to macOS x64
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o bin/main-darwin-amd64 main.go
+## to macOS arm64
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o bin/main-darwin-arm64 main.go
+```
+
+
 - 🐳 Docker
   - `@TODO`
 
