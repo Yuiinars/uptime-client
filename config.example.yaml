@@ -1,0 +1,45 @@
+api_domain: https://... # example: https://status.example.com/api/push
+exec_mode: async # async/sync
+targets:
+    - token: A1B2C3D4E5 # /api/push/{token}
+      name: Example TCP Probe 1
+      mode: tcp # tcp, icmp, http, https, doq, dns
+      tcp_target: example.com:443 # host:port / ip:port
+      timeout: 5 # seconds
+      interval: 10 # seconds
+    - token: A1B2C3D4E5
+      name: Example ICMP Probe 2
+      mode: icmp
+      icmp_target: example.com # host / ip
+      timeout: 2
+      interval: 5
+    - token: A1B2C3D4E5
+      name: Example HTTP Probe 3
+      mode: http
+      http_target: example.com:80 # host:port / ip:port; port is optional
+      timeout: 2
+      interval: 5
+    - token: A1B2C3D4E5
+      name: Example HTTPS Probe 4
+      mode: https
+      http_target: example.com:443 # host:port / ip:port; port is optional
+      timeout: 2
+      interval: 5
+    - token: A1B2C3D4E5
+      name: Example DoQ Probe 5
+      mode: doq # dns over quic (doq), dns over udp (dns)
+      dns_target: www.google.com # domain (FQDN)
+      dns_server: 94.140.14.14 # dns server ip
+      dns_server_port: 784 # dns server ip:port, default port is 784 (RFC 7858)
+      dns_type: 28 # rr type (A:1, AAAA:28, CNAME:5, MX:15, NS:2, PTR:12, SOA:6, TXT:16)
+      timeout: 2
+      interval: 5
+    - token: A1B2C3D4E5
+      name: Example DNS Probe 5
+      mode: dns # dns over quic (doq), dns over udp (dns)
+      dns_target: www.google.com # domain (FQDN)
+      dns_server: 1.0.0.1 # dns server ip
+      dns_server_port: 53 # default port is 53 (RFC 1035)
+      dns_type: 1 # rr type (A:1, AAAA:28, CNAME:5, MX:15, NS:2, PTR:12, SOA:6, TXT:16)
+      timeout: 2
+      interval: 5
