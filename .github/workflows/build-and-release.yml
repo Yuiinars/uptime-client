@@ -1,0 +1,39 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.x
+
+      - name: Build binary
+        run: |
+          export GOOS=${{ matrix.goos }}
+          export GOARCH=${{ matrix.goarch }}
+          export BINARY_NAME=main-${{ matrix.goos }}-${{ matrix.goarch }}
+          CGO_ENABLED=0 go build -o bin/$BINARY_NAME main.go
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: main-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: bin/main-${{ matrix.goos }}-${{ matrix.goarch }}
