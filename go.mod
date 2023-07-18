@@ -1,4 +1,4 @@
-module github.com/Yuiinars/uptime-client
+module uptime-client
 
 go 1.20
 
