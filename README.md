@@ -1,9 +1,21 @@
 # Uptime Client
 A simple health check client for [Uptime Kuma](https://github.com/louislam/uptime-kuma).
 
+## ✳️ Support API Provider
+- [x] Uptime Kuma @ v1.0.1-alpha+
+- [ ] Uptime Robot (Todo)
+
+## ✅ Support Protocol/Service List
+- [x] ICMP @ v1.0.1-alpha+
+- [x] TCP/UDP @ v1.0.1-alpha+
+- [x] HTTP(S) (GET) @ v1.0.1-alpha+
+- [x] DNS over UDP/QUIC @ v1.0.1-alpha+
+- [ ] BIRD (Todo)
+
 ## ⏬Download
 - 💲 Binary
   - Download binary to `/opt/uptime-client/` from `Github Releases`
+  - Run `./bin/main-*`
 - 🐙 Source
 ```bash
 mkdir /opt/uptime-client/ && cd /opt/uptime-client/
@@ -25,16 +37,17 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o bin/main-darwin-amd64 main.go
 CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o bin/main-darwin-arm64 main.go
 ```
 
-
 - 🐳 Docker
-  - `@TODO`
+  - RUN `@TODO`
+  - Compose `@TODO`
+  - Dockerfile `@TODO`
 
 ## ☸️Usage
 - Create and edit config file to binary directory
-  - `nano config.example.yaml` / `vim config.example.yaml`
+  - Edit `config.example.yaml`
   - `mv config.example.yaml config.yaml`
 - Run binary
-  - `./opt/uptime-client/bin/main`
+  - `./opt/uptime-client/bin/main-*`
 - Init daemon
 ```bash
 # Linux
@@ -54,6 +67,9 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
+systemctl daemon-reload
+systemctl enable uptime-client
+systemctl start uptime-client
 ```
 
 ## 📝Config

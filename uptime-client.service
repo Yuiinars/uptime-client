@@ -1,0 +1,14 @@
+[Unit]
+Description=Uptime Client
+After=network.target
+
+[Service]
+Type=simple
+User=root # Root user required for ICMP
+WorkingDirectory=/opt/uptime-client
+ExecStart=/opt/uptime-client/bin/main
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
