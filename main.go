@@ -25,11 +25,14 @@ import (
 var version = "Uptime Kuma Client 1.0.0 (Alpha)"           // app version
 var repo_url = "https://github.com/Yuiinars/uptime-client" // app repo url
 var totalTcpRequests uint64                                // atomic
-var totalIcmpRequests uint64                               // atomic
-var totalHttpRequests uint64                               // atomic
-var totalQuicRequests uint64                               // atomic
-var totalDnsRequests uint64                                // atomic
 
+// totalIcmpRequests is a variable that represents the total number of ICMP requests made.
+var totalIcmpRequests uint64 // atomic
+var totalHttpRequests uint64 // atomic
+var totalQuicRequests uint64 // atomic
+var totalDnsRequests uint64  // atomic
+
+// Config represents the configuration for the uptime client.
 type Config struct {
 	ApiDomain string   `yaml:"api_domain"`
 	ExecMode  string   `yaml:"exec_mode"`
@@ -67,6 +70,9 @@ func main() {
 	}
 }
 
+// queryDNSOverUDP sends a DNS query over UDP to the specified server and port.
+// It takes a domain name, server address, port number, and query type as parameters.
+// It returns the DNS response message and an error if the query fails.
 func queryDNSOverUDP(domain string, server string, port int, queryType uint16) (*dns.Msg, error) {
 	// Create a DNS message
 	msg := new(dns.Msg)
@@ -86,6 +92,9 @@ func queryDNSOverUDP(domain string, server string, port int, queryType uint16) (
 	return resp, nil
 }
 
+// queryDNSOverQUIC is a function that sends a DNS query over QUIC to a specified server and port.
+// It takes a domain name, server address, port number, and query type as input parameters.
+// It returns the DNS response message and an error if any.
 func queryDNSOverQUIC(domain string, server string, port int, queryType uint16) (*dns.Msg, error) {
 	// Create a DNS message
 	msg := new(dns.Msg)
@@ -146,6 +155,13 @@ func queryDNSOverQUIC(domain string, server string, port int, queryType uint16) 
 	return resp, nil
 }
 
+// runAsync is a function that runs the targets asynchronously.
+// It takes a Config parameter which contains the configuration settings.
+// For each target in the configuration, it creates a goroutine that periodically processes the target.
+// The processing is done by calling the processTarget function with the API domain and the target.
+// The interval between each processing is determined by the target's Interval field.
+// This function waits for all the goroutines to finish before returning.
+
 func runAsync(config Config) {
 	var wg sync.WaitGroup
 	for _, target := range config.Targets {
@@ -169,6 +185,13 @@ func runSync(config Config) {
 	}
 }
 
+// processTarget is a function that processes a target based on its mode.
+// It performs different types of pings (TCP, ICMP, HTTP, DNS-over-QUIC, DNS) on the target
+// and sends the results to an API endpoint.
+// The function takes the API domain and the target as parameters.
+// It updates the status and message based on the ping results,
+// and prints the latency and status of the target.
+// It also increments the total request counters for each type of ping.
 func processTarget(apiDomain string, target Target) {
 	var duration time.Duration
 	var status = "up" // up, down
@@ -187,8 +210,27 @@ func processTarget(apiDomain string, target Target) {
 		} else {
 			conn.Close()
 		}
-		duration = time.Since(start)
-		atomic.AddUint64(&totalTcpRequests, 1) // increment
+		duration1 := time.Since(start)
+
+		// Second TCP Ping
+		start = time.Now()
+		conn, err = dialer.Dial("tcp", target.TcpTarget)
+		if err != nil {
+			status = "down"
+			msg = fmt.Sprintf("[Error] Cannot connect to %s (TCP)", target.Name)
+			fmt.Printf("Error connecting to TCP target (%s): %v\n", target.Name, err)
+		} else {
+			conn.Close()
+		}
+		duration2 := time.Since(start)
+
+		// Choose the minimum duration
+		if duration1 < duration2 {
+			duration = duration1
+		} else {
+			duration = duration2
+		}
+		atomic.AddUint64(&totalTcpRequests, 2) // increment by 2
 
 	case "icmp":
 		// ICMP Ping Mode
@@ -201,19 +243,19 @@ func processTarget(apiDomain string, target Target) {
 			// Pinger settings
 			pinger.SetPrivileged(true)                                   // Required for ICMP
 			pinger.Timeout = time.Duration(target.Timeout) * time.Second // Timeout in seconds
-			pinger.Count = 1                                             // Send 1 packet
+			pinger.Count = 3                                             // Send 3 packets
 
 			err = pinger.Run()
 			if err != nil {
 				fmt.Printf("Error running ICMP pinger (%s): %v\n", target.Name, err)
 			} else {
 				stats := pinger.Statistics()
-				duration = stats.AvgRtt
+				duration = stats.MinRtt
 				if stats.PacketsRecv == 0 {
 					status = "down"
 					msg = fmt.Sprintf("[Error] Cannot connect to %s (ICMP)", target.Name)
 				}
-				atomic.AddUint64(&totalIcmpRequests, 1) // increment
+				atomic.AddUint64(&totalIcmpRequests, 3) // increment by 3
 			}
 		}
 	case "http", "https":
@@ -297,6 +339,8 @@ func processTarget(apiDomain string, target Target) {
 	}
 }
 
+// readConfig reads the configuration from the "config.yaml" file and returns a Config struct.
+// If there is an error reading or parsing the file, it panics.
 func readConfig() Config {
 	dataBytes, err := os.ReadFile("config.yaml")
 	if err != nil {
@@ -322,6 +366,18 @@ func readConfig() Config {
 	return config
 }
 
+// sendData sends data to the specified API endpoint.
+// It takes the following parameters:
+// - apiDomain: the domain of the API
+// - token: the token used for authentication
+// - duration: the duration of the request
+// - status: the status of the request
+// - msg: the message associated with the request
+//
+// It performs a GET request to the API endpoint with the provided parameters.
+// If the request is successful, it checks the response for validity.
+// If the response is not valid, it prints an error message.
+// If there is an error during the request or response handling, it prints the corresponding error message.
 func sendData(apiDomain, token string, duration time.Duration, status, msg string) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", apiDomain, token), nil)

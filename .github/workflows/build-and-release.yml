@@ -2,19 +2,17 @@ name: Build and Release
 
 on:
   push:
-    branches: [ main ]
+    paths:
+      - 'main.go'
+      - 'go.mod'
 
 jobs:
   build:
-    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [linux, windows, darwin]
         goarch: [amd64, arm64]
-        exclude:
-          - goos: windows
-            goarch: arm64
 
     steps:
       - name: Checkout code
@@ -23,7 +21,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.20.6
+          go-version: 1.21.4
+
+      - name: Install dependencies
+        run: |
+          go mod download
 
       - name: Build binary
         run: |
