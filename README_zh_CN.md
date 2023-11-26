@@ -1,9 +1,13 @@
 # Uptime Client
 
-![由 Golang 强力驱动](https://bin.xmsl.dev/uptime-client/badge/golang.svg)
+![由 Golang 强力驱动](./assets/golang.svg)
 ![编译状态](https://github.com/Yuiinars/uptime-client/actions/workflows/build.yml/badge.svg)
 
 [English](README.md) | [简体中文](README_zh_CN.md)
+
+<div style="display: block; margin: auto;">
+  <img src="./assets/logo.svg" alt="Uptime Client" width="200px" height="200px" title="Logo 图片">
+</div>
 
 一个使用 Golang 编写的全能型网络健康检查工具。
 
