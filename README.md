@@ -1,13 +1,13 @@
+<div style="display: block; margin: auto;" align="center">
+  <img src="./assets/logo.svg" alt="Uptime Client" width="200px" height="200px" title="Logo Image">
+</div>
+
 # Uptime Client
 
 ![Powered by Golang](./assets/golang.svg)
 ![Build and Release](https://github.com/Yuiinars/uptime-client/actions/workflows/build.yml/badge.svg)
 
 [English](README.md) | [简体中文](README_zh_CN.md)
-
-<div style="display: block; margin: auto;">
-  <img src="./assets/logo.svg" alt="Uptime Client" width="200px" height="200px" title="Logo Image">
-</div>
 
 A Network Health Checking tools built with Golang.
 
