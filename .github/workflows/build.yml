@@ -1,0 +1,129 @@
+name: Build and Release
+
+on:
+  push:
+    paths:
+      - 'main.go'
+      - 'go.mod'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows, freebsd]
+        goarch: [amd64, arm64]
+    steps:
+      - name: Check system
+        run: |
+          export CPU_ARCH=$(uname -a)
+          export CPU_CORE=$(nproc)
+          export CPU_THREAD=$(nproc --all)
+          export CPU_MODEL=$(cat /proc/cpuinfo | grep 'model name' | uniq | awk -F ': ' '{print $2}')
+          export CPU_FREQ=$(cat /proc/cpuinfo | grep 'cpu MHz' | uniq | awk -F ': ' '{print $2}')
+          export CPU_CACHE=$(cat /proc/cpuinfo | grep 'cache size' | uniq | awk -F ': ' '{print $2}')
+          export DISK_TOTAL=$(df -h | grep 'Filesystem' | awk -F ' ' '{print $2}')
+          export DISK_FREE=$(df -h | grep 'Filesystem' | awk -F ' ' '{print $4}')
+          export MEM_TOTAL=$(free -h | grep 'Mem' | awk -F ' ' '{print $2}')
+          export MEM_FREE=$(free -h | grep 'Mem' | awk -F ' ' '{print $4}')
+          export IP_GEO=$(curl -sL https://1.1.1.1/cdn-cgi/trace | grep 'loc' | awk -F '=' '{print $2}')
+          export CF_COLO=$(curl -sL https://1.1.1.1/cdn-cgi/trace | grep 'colo' | awk -F '=' '{print $2}')
+
+          echo "====== System Information START ======"
+          
+          echo "=== CPU ==="
+          echo "CPU Architecture: $CPU_ARCH"
+          echo "CPU Core: $CPU_CORE ($CPU_THREAD Threads)"
+          echo "CPU Model: $CPU_MODEL ($CPU_FREQ MHz)"
+          echo "CPU Cache: $CPU_CACHE"
+          
+          echo "=== Disk ==="
+          echo "Disk Total: $DISK_TOTAL"
+          echo "Disk Free: $DISK_FREE"
+
+          echo "=== Memory ==="
+          echo "Memory Total: $MEM_TOTAL"
+          echo "Memory Free: $MEM_FREE"
+
+          echo "=== Network ==="
+          echo "IP Geolocation: $IP_GEO"
+          echo "Cloudflare Colo: $CF_COLO"
+
+          echo "====== System Information END ======"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.20.0'
+
+      - name: Check Golang Version
+        run: go version
+
+      - name: Install UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
+        env:
+          continue-on-error: true
+
+      - name: Check UPX version
+        run: upx --version
+
+      - name: Install Go dependencies
+        run: |
+          go mod download
+          go mod verify
+          go mod tidy
+          go mod vendor
+
+      - name: Build binary
+        run: |
+          export GOOS=${{ matrix.goos }}
+          export GOARCH=${{ matrix.goarch }}
+          export BINARY_NAME=main-${{ matrix.goos }}-${{ matrix.goarch }}
+          CGO_ENABLED=0 go build -o bin/$BINARY_NAME -p $(nproc) main.go
+
+      - name: Run UPX
+        run: upx --best --lzma bin/main-${{ matrix.goos }}-${{ matrix.goarch }}
+        continue-on-error: true
+
+      - name: Calculate the checksum
+        run: |
+            mkdir -p bin/hash
+            export BINARY_NAME=main-${{ matrix.goos }}-${{ matrix.goarch }}
+            export BINARY_SIZE=$(stat -c %s bin/$BINARY_NAME)" Bytes"
+            export BINARY_SHA256=$(sha256sum bin/$BINARY_NAME | awk '{print $1}')
+            export BINARY_SHA512=$(sha512sum bin/$BINARY_NAME | awk '{print $1}')
+            export TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" UTC"
+
+            echo "====== Checksum for $BINARY_NAME ======" > bin/hash/$BINARY_NAME.txt
+            echo "SHA256: $BINARY_SHA256" >> bin/hash/$BINARY_NAME.txt
+            echo "SHA512: $BINARY_SHA512" >> bin/hash/$BINARY_NAME.txt
+            echo "Size: $BINARY_SIZE" >> bin/hash/$BINARY_NAME.txt
+            echo "Name: $BINARY_NAME" >> bin/hash/$BINARY_NAME.txt
+            echo "Generated at: $TIMESTAMP by Github Action" >> bin/hash/$BINARY_NAME.txt
+            echo "====== Checksum Completed ======" >> bin/hash/$BINARY_NAME.txt
+
+      - name: Upload binary to Cloudflare R2
+        uses: magicwallet/r2-upload@main
+        with:
+          endpoint: ${{ secrets.R2_EP }}
+          access_key_id: ${{ secrets.R2_AKID }}
+          secret_access_key: ${{ secrets.R2_KEY }}
+          bucket: ${{ secrets.R2_BUCKET }}
+          file: bin/main-${{ matrix.goos }}-${{ matrix.goarch }}
+          destination: 'uptime-client/main-${{ matrix.goos }}-${{ matrix.goarch }}'
+      
+      - name: Upload checksum to Cloudflare R2
+        uses: magicwallet/r2-upload@main
+        with:
+          endpoint: ${{ secrets.R2_EP }}
+          access_key_id: ${{ secrets.R2_AKID }}
+          secret_access_key: ${{ secrets.R2_KEY }}
+          bucket: ${{ secrets.R2_BUCKET }}
+          file: bin/hash/main-${{ matrix.goos }}-${{ matrix.goarch }}.txt
+          destination: 'uptime-client/hash/main-${{ matrix.goos }}-${{ matrix.goarch }}.txt'

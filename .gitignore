@@ -1,0 +1,4 @@
+.lh/
+vendor/
+go.sum
+*.test
