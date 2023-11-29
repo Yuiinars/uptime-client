@@ -42,7 +42,7 @@ function checkDependencies() {
     else
         echo -e "${WARN}Version cache file not exist, will force to update.${NC}"
         echo "0" > /etc/uptime-client/.v
-        exit 1
+        chmod 600 /etc/uptime-client/.v
     fi
 }
 

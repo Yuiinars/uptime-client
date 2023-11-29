@@ -36,12 +36,12 @@ A Network Health Checking tools built with Golang.
 
 ### Install
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/script/install.sh | sudo bash
 ```
 
 ### Update
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/script/update.sh | sudo bash
 ```
 
 ## :arrow_down_small: Download

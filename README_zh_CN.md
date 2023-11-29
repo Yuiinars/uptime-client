@@ -36,12 +36,12 @@
 
 ### :package: 安装
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/script/install.sh | sudo bash
 ```
 
 ### :hammer: 更新
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/script/update.sh | sudo bash
 ```
 
 ## :arrow_down_small: 二进制下载

@@ -124,9 +124,17 @@ function downloadBinary() {
     echo -e "${INFO}Downloading binary...${NC}"
     curl -sSL "https://bin.xmsl.dev/uptime-client/main-$ARCHITECTURE" -o "/etc/uptime-client/bin/main"
     curl -sSL "https://raw.githubusercontent.com/Yuiinars/uptime-client/main/config.example.yaml" -o "/etc/uptime-client/config.example.yaml"
-    curl -sSL "https://raw.githubusercontent.com/Yuiinars/uptime-client/main/assets/v" -o "/etc/uptime-client/.v"
+
+    # Change permission to executable
     chmod +x "/etc/uptime-client/bin/main"
+
+    # Save version cache
+    curl -sSL "https://raw.githubusercontent.com/Yuiinars/uptime-client/main/assets/v" -o "/etc/uptime-client/.v"
+    chmod 600 "/etc/uptime-client/.v"
+
+    # Save architecture cache
     echo $ARCHITECTURE > "/etc/uptime-client/.arch"
+    chmod 400 "/etc/uptime-client/.arch"
 }
 
 # Register service
