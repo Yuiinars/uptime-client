@@ -350,7 +350,7 @@ func readConfig() Config {
 	}
 
 	config.ApiDomain = fmt.Sprintf(
-		"%s://%s:%d/%s",
+		"%s://%s:%d%s",
 		config.ApiScheme,
 		config.ApiDomain,
 		config.ApiPort,
@@ -384,7 +384,9 @@ func readConfig() Config {
 // If there is an error during the request or response handling, it prints the corresponding error message.
 func sendData(apiDomain string, token string, duration time.Duration, status, msg string) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", apiDomain, token), nil)
+	requestURL := fmt.Sprintf("%s/%s", apiDomain, token)
+
+	req, err := http.NewRequest("GET", requestURL, nil)
 	req.Header.Set("User-Agent", "Uptime-Client/"+version+"+(https://github.com/Yuiinars/uptime-client)")
 	req.Header.Set("Accept", "application/json")
 	if err != nil {
@@ -406,7 +408,7 @@ func sendData(apiDomain string, token string, duration time.Duration, status, ms
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			fmt.Println("Error closing HTTP response body:", err, "[", apiDomain, "/", token, "]")
+			fmt.Println("Error closing HTTP response body:", err, "[", requestURL, "]")
 			return
 		}
 	}(resp.Body)
@@ -414,7 +416,7 @@ func sendData(apiDomain string, token string, duration time.Duration, status, ms
 	if resp.StatusCode != http.StatusOK { // Validate HTTP Status Code
 		fmt.Println(
 			"-------------------------------------------------------------------\n"+
-				"API Error: HTTP Status Code:", resp.StatusCode, "[", apiDomain, "/", token, "]",
+				"API Error: HTTP Status Code:", resp.StatusCode, "[", requestURL, "]",
 			"\n-------------------------------------------------------------------")
 		return
 	}
@@ -425,11 +427,11 @@ func sendData(apiDomain string, token string, duration time.Duration, status, ms
 	}
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
-		fmt.Println("Invalid API response:", err, "[", apiDomain, "/", token, "]")
+		fmt.Println("Invalid API response:", err, "[", requestURL, "]")
 		return
 	}
 
 	if !response.Ok {
-		fmt.Printf("Error: API response invalid: %s/%s, Message: %s\n", apiDomain, token, response.Msg)
+		fmt.Printf("Error: API response invalid: %s, Message: %s\n", requestURL, response.Msg)
 	}
 }
