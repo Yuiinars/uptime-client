@@ -28,6 +28,22 @@
 | DNS over UDP/QUIC | Beta          | :ballot_box_with_check: 完全支持 |
 | Custom Command    | Todo          | :x: 计划中                      |
 
+## ：computer_mouse：一键部署
+
+> [!WARNING]
+> Windows 目前不支持一键部署。  
+> **请在运行陌生脚本前先检查代码，这是一个好习惯。**
+
+### :package: 安装
+```bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/install.sh | bash
+```
+
+### :hammer: 更新
+```bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/update.sh | bash
+```
+
 ## :arrow_down_small: 二进制下载
 
 > [!WARNING]
@@ -128,8 +144,8 @@ After=network.target
 [Service]
 Type=simple
 User=root # Root user required for ICMP
-WorkingDirectory=/opt/uptime-client
-ExecStart=/opt/uptime-client/bin/main
+WorkingDirectory=/etc/uptime-client
+ExecStart=/etc/uptime-client/bin/main
 Restart=always
 RestartSec=5
 

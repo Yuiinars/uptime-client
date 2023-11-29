@@ -22,7 +22,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var version = "Uptime Client 1.0.4"                       // app version
+var version = "Uptime Client 1.1.3"                       // app version
 var repoUrl = "https://github.com/Yuiinars/uptime-client" // app repo url
 var totalTcpRequests uint64                               // atomic
 

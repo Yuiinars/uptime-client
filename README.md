@@ -28,6 +28,22 @@ A Network Health Checking tools built with Golang.
 | DNS over UDP/QUIC      | Beta              |   :ballot_box_with_check:   |
 | Custom Command         | Todo              |   :x:                       |
 
+## :computer_mouse: One-click Deploy
+
+> [!WARNING]
+> **One-Click Deploy is not currently supported for Windows.**  
+> **Please check the contents of the script before running it.**
+
+### Install
+```bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/install.sh | bash
+```
+
+### Update
+```bash
+curl -fsSL https://raw.githubusercontent.com/Yuiinars/uptime-client/main/update.sh | bash
+```
+
 ## :arrow_down_small: Download
 
 > [!WARNING]
@@ -77,7 +93,7 @@ These binaries are built from the latest commit of the `main` branch by GitHub A
 ### :octopus: Compile from source code
 
 ```bash
-mkdir /opt/uptime-client/ && cd /opt/uptime-client/
+mkdir /etc/uptime-client/ && cd /etc/uptime-client/
 git clone https://github.com/Yuiinars/uptime-client .
 
 go mod download
@@ -115,7 +131,7 @@ go build -o ...
   - Rename `config.example.yaml` to `config.yaml`
 
 1. Run binary
-  - `./opt/uptime-client/bin/main-*`
+  - `./etc/uptime-client/bin/main-*`
 
 1. Init daemon
 ```bash
@@ -127,8 +143,8 @@ After=network.target
 [Service]
 Type=simple
 User=root # Root user required for ICMP
-WorkingDirectory=/opt/uptime-client
-ExecStart=/opt/uptime-client/bin/main
+WorkingDirectory=/etc/uptime-client
+ExecStart=/etc/uptime-client/bin/main
 Restart=always
 RestartSec=5
 
