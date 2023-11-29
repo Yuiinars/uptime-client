@@ -382,9 +382,11 @@ func readConfig() Config {
 // If the request is successful, it checks the response for validity.
 // If the response is not valid, it prints an error message.
 // If there is an error during the request or response handling, it prints the corresponding error message.
-func sendData(apiDomain, token string, duration time.Duration, status, msg string) {
+func sendData(apiDomain string, token string, duration time.Duration, status, msg string) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s", apiDomain, token), nil)
+	req.Header.Set("User-Agent", "Uptime-Client/"+version+"+(https://github.com/Yuiinars/uptime-client)")
+	req.Header.Set("Accept", "application/json")
 	if err != nil {
 		fmt.Println("Cannot creating HTTP request:", err)
 		return
@@ -423,7 +425,7 @@ func sendData(apiDomain, token string, duration time.Duration, status, msg strin
 	}
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
-		fmt.Println("Invalid API response:", err)
+		fmt.Println("Invalid API response:", err, "[", apiDomain, "/", token, "]")
 		return
 	}
 
