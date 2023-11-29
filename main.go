@@ -14,8 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"sync/atomic"
-
 	"github.com/go-ping/ping"
 	"github.com/miekg/dns"
 	"github.com/quic-go/quic-go"
@@ -24,13 +22,6 @@ import (
 
 var version = "Uptime Client 1.1.3"                       // app version
 var repoUrl = "https://github.com/Yuiinars/uptime-client" // app repo url
-var totalTcpRequests uint64                               // atomic
-
-// totalIcmpRequests is a variable that represents the total number of ICMP requests made.
-var totalIcmpRequests uint64 // atomic
-var totalHttpRequests uint64 // atomic
-var totalQuicRequests uint64 // atomic
-var totalDnsRequests uint64  // atomic
 
 // Config represents the configuration for the uptime client.
 
@@ -247,7 +238,6 @@ func processTarget(apiDomain string, target Target) {
 		} else {
 			duration = duration2
 		}
-		atomic.AddUint64(&totalTcpRequests, 2) // increment by 2
 
 	case "icmp":
 		// ICMP Ping Mode
@@ -272,7 +262,6 @@ func processTarget(apiDomain string, target Target) {
 					status = "down"
 					msg = fmt.Sprintf("[Error] Cannot connect to %s (ICMP)", target.Name)
 				}
-				atomic.AddUint64(&totalIcmpRequests, 3) // increment by 3
 			}
 		}
 	case "http", "https":
@@ -295,7 +284,6 @@ func processTarget(apiDomain string, target Target) {
 			}
 		}
 		duration = time.Since(start)
-		atomic.AddUint64(&totalHttpRequests, 1) // increment
 	case "doq":
 		// DNS-over-QUIC Ping Mode
 		start := time.Now()
@@ -314,7 +302,6 @@ func processTarget(apiDomain string, target Target) {
 			}
 		}
 		duration = time.Since(start)
-		atomic.AddUint64(&totalQuicRequests, 1) // increment
 	case "dns":
 		// DNS Ping Mode
 		start := time.Now()
@@ -333,7 +320,6 @@ func processTarget(apiDomain string, target Target) {
 			}
 		}
 		duration = time.Since(start)
-		atomic.AddUint64(&totalDnsRequests, 1) // increment
 	default:
 		fmt.Println("Invalid mode in config.yaml")
 		return
@@ -347,17 +333,6 @@ func processTarget(apiDomain string, target Target) {
 	)
 
 	sendData(apiDomain, target.Token, duration, status, msg)
-
-	// Print total requests every 10 requests
-	if totalIcmpRequests%10 == 0 && totalIcmpRequests > 0 {
-		fmt.Printf("Total ICMP requests: %d\n", totalIcmpRequests)
-	}
-	if totalTcpRequests%10 == 0 && totalTcpRequests > 0 {
-		fmt.Printf("Total TCP requests: %d\n", totalTcpRequests)
-	}
-	if totalHttpRequests%10 == 0 && totalHttpRequests > 0 {
-		fmt.Printf("Total HTTP requests: %d\n", totalHttpRequests)
-	}
 }
 
 // readConfig reads the configuration from the "config.yaml" file and returns a Config struct.
@@ -423,7 +398,7 @@ func sendData(apiDomain, token string, duration time.Duration, status, msg strin
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Cannot Request to API, Detail:", err)
+		fmt.Println("Cannot Request to API, Message:", err)
 		return
 	}
 	defer func(Body io.ReadCloser) {
@@ -443,7 +418,8 @@ func sendData(apiDomain, token string, duration time.Duration, status, msg strin
 	}
 
 	var response struct {
-		Ok bool `json:"ok"` // Validate API response
+		Ok  bool   `json:"ok"`  // Validate API response
+		Msg string `json:"msg"` // Message from API
 	}
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
@@ -452,6 +428,6 @@ func sendData(apiDomain, token string, duration time.Duration, status, msg strin
 	}
 
 	if !response.Ok {
-		fmt.Printf("Error: API response invalid: %s/%s\n", apiDomain, token)
+		fmt.Printf("Error: API response invalid: %s/%s, Message: %s\n", apiDomain, token, response.Msg)
 	}
 }
