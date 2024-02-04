@@ -1,6 +1,6 @@
 module uptime-client
 
-go 1.21.4
+go 1.21.6
 
 require (
 	github.com/go-ping/ping v1.1.0
