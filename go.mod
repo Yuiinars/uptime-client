@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/go-ping/ping v1.1.0
-	github.com/miekg/dns v1.1.57
+	github.com/miekg/dns v1.1.58
 	github.com/quic-go/quic-go v0.40.1
 	gopkg.in/yaml.v3 v3.0.1
 )
